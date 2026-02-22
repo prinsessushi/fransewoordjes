@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Franse Flitskaartjes – Contact 5-8</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      color: white;
+      font-size: 1.6em;
+      margin-bottom: 6px;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.85);
+      font-size: 0.95em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Mode selector */
+    .mode-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .mode-btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn.active, .mode-btn:hover {
+      background: white;
+      color: #764ba2;
+      border-color: white;
+      font-weight: bold;
+    }
+
+    /* Progress */
+    .progress-bar-outer {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 10px;
+      height: 8px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      background: #ffe066;
+      border-radius: 10px;
+      transition: width 0.4s;
+    }
+
+    .counter {
+      color: rgba(255,255,255,0.9);
+      font-size: 0.9em;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    /* Card */
+    .card-scene {
+      width: 100%;
+      max-width: 520px;
+      height: 220px;
+      perspective: 1000px;
+      cursor: pointer;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s ease;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    }
+
+    .card-front {
+      background: white;
+    }
+
+    .card-back {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      transform: rotateY(180deg);
+    }
+
+    .card-label {
+      font-size: 0.72em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+    .card-front .card-label { color: #764ba2; }
+    .card-back .card-label { color: #667eea; }
+
+    .card-text {
+      font-size: 1.55em;
+      font-weight: 600;
+      text-align: center;
+      color: #2d2d2d;
+      line-height: 1.35;
+    }
+
+    .card-hint {
+      margin-top: 12px;
+      font-size: 0.8em;
+      color: #aaa;
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      border-radius: 30px;
+      border: none;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-wrong  { background: #ff6b6b; color: white; }
+    .btn-right  { background: #51cf66; color: white; }
+    .btn-skip   { background: rgba(255,255,255,0.3); color: white; border: 2px solid rgba(255,255,255,0.5); }
+    .btn-flip   { background: white; color: #764ba2; }
+    .btn-reset  { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); font-size: 0.9em; padding: 9px 20px; }
+
+    /* Score */
+    .score-row {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 14px;
+      justify-content: center;
+    }
+    .score-item {
+      text-align: center;
+      color: white;
+    }
+    .score-num {
+      font-size: 1.6em;
+      font-weight: bold;
+      display: block;
+    }
+    .score-lbl {
+      font-size: 0.75em;
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Finished screen */
+    .finished {
+      background: white;
+      border-radius: 20px;
+      padding: 36px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .finished h2 { font-size: 2em; margin-bottom: 10px; }
+    .finished p { color: #555; margin-bottom: 20px; font-size: 1.05em; }
+    .finished .btn { margin: 6px; }
+
+    /* Theme filter */
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 14px;
+      max-width: 520px;
+    }
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 0.8em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: rgba(255,255,255,0.9);
+      color: #764ba2;
+      font-weight: bold;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<h1>🇫🇷 Franse Flitskaartjes</h1>
+<p class="subtitle">Contact 5 – 8</p>
+
+<!-- Mode -->
+<div class="mode-bar">
+  <button class="mode-btn active" onclick="setMode('nl-fr')">🇧🇪 → 🇫🇷 Nederlands → Frans</button>
+  <button class="mode-btn" onclick="setMode('fr-nl')">🇫🇷 → 🇧🇪 Frans → Nederlands</button>
+</div>
+
+<!-- Theme filter -->
+<div class="filter-row" id="filterRow">
+  <button class="filter-btn active" onclick="setFilter('all')">Alles</button>
+  <button class="filter-btn" onclick="setFilter('woorden')">Woorden</button>
+  <button class="filter-btn" onclick="setFilter('zinnen')">Zinnen</button>
+  <button class="filter-btn" onclick="setFilter('werkwoorden')">Werkwoorden</button>
+</div>
+
+<!-- Score -->
+<div class="score-row">
+  <div class="score-item"><span class="score-num" id="scoreGood">0</span><span class="score-lbl">✓ Goed</span></div>
+  <div class="score-item"><span class="score-num" id="scoreBad">0</span><span class="score-lbl">✗ Fout</span></div>
+  <div class="score-item"><span class="score-num" id="scoreLeft">0</span><span class="score-lbl">Resterend</span></div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar-outer">
+  <div class="progress-bar-inner" id="progressBar" style="width:0%"></div>
+</div>
+<div class="counter" id="counter">Kaart 1 van 0</div>
+
+<!-- Card -->
+<div class="card-scene" onclick="flipCard()" id="cardScene">
+  <div class="card" id="card">
+    <div class="card-face card-front">
+      <span class="card-label" id="frontLabel">Nederlands</span>
+      <span class="card-text" id="frontText">—</span>
+      <span class="card-hint">Klik om om te draaien</span>
+    </div>
+    <div class="card-face card-back">
+      <span class="card-label" id="backLabel">Frans</span>
+      <span class="card-text" id="backText">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- Buttons -->
+<div class="btn-row" id="flipBtns">
+  <button class="btn btn-flip" onclick="flipCard()">🔄 Omdraaien</button>
+  <button class="btn btn-skip" onclick="skipCard()">⏭ Overslaan</button>
+</div>
+
+<div class="btn-row hidden" id="judgeBtns">
+  <button class="btn btn-wrong" onclick="judge(false)">✗ Fout</button>
+  <button class="btn btn-right" onclick="judge(true)">✓ Goed!</button>
+</div>
+
+<div class="btn-row">
+  <button class="btn btn-reset" onclick="resetDeck()">🔀 Opnieuw & Schudden</button>
+</div>
+
+<!-- Finished -->
+<div class="finished hidden" id="finishedScreen">
+  <h2 id="finishEmoji">🎉</h2>
+  <h2 id="finishTitle">Klaar!</h2>
+  <p id="finishMsg"></p>
+  <button class="btn btn-right" onclick="resetDeck()">🔀 Opnieuw spelen</button>
+  <button class="btn btn-wrong" onclick="repeatWrong()" id="repeatWrongBtn">✗ Herhaal foute</button>
+</div>
+
+<script>
+const allCards = [
+  // === WOORDEN: Familie & Personen ===
+  {nl:"een leeftijd", fr:"un âge", cat:"woorden"},
+  {nl:"een jaar", fr:"un an", cat:"woorden"},
+  {nl:"een klas / leerjaar", fr:"une classe", cat:"woorden"},
+  {nl:"een dans", fr:"une danse", cat:"woorden"},
+  {nl:"een meisje", fr:"une fille", cat:"woorden"},
+  {nl:"een broer", fr:"un frère", cat:"woorden"},
+  {nl:"een jongen", fr:"un garçon", cat:"woorden"},
+  {nl:"een mevrouw", fr:"une madame", cat:"woorden"},
+  {nl:"een juffrouw", fr:"une mademoiselle", cat:"woorden"},
+  {nl:"een meneer", fr:"un monsieur", cat:"woorden"},
+  {nl:"een zus", fr:"une sœur", cat:"woorden"},
+  {nl:"een kind", fr:"un enfant", cat:"woorden"},
+  {nl:"een vriend", fr:"un copain", cat:"woorden"},
+  {nl:"een vriendin", fr:"une copine", cat:"woorden"},
+  {nl:"een leraar", fr:"un professeur", cat:"woorden"},
+  {nl:"een lerares", fr:"une professeure", cat:"woorden"},
+
+  // === WOORDEN: Eten & Drinken ===
+  {nl:"de boter", fr:"le beurre", cat:"woorden"},
+  {nl:"een drank", fr:"une boisson", cat:"woorden"},
+  {nl:"een croissant", fr:"un croissant", cat:"woorden"},
+  {nl:"de kaas", fr:"le fromage", cat:"woorden"},
+  {nl:"de melk", fr:"le lait", cat:"woorden"},
+  {nl:"een boterham", fr:"une tartine", cat:"woorden"},
+  {nl:"smakelijk", fr:"bon appétit", cat:"woorden"},
+
+  // === WOORDEN: Tijd ===
+  {nl:"een uur", fr:"une heure", cat:"woorden"},
+  {nl:"de tijd", fr:"le temps", cat:"woorden"},
+  {nl:"de ochtend", fr:"le matin", cat:"woorden"},
+  {nl:"de middag", fr:"le midi", cat:"woorden"},
+  {nl:"middernacht", fr:"le minuit", cat:"woorden"},
+  {nl:"de namiddag", fr:"l'après-midi", cat:"woorden"},
+  {nl:"de avond", fr:"le soir", cat:"woorden"},
+  {nl:"de vroege ochtend", fr:"le petit matin", cat:"woorden"},
+  {nl:"een klok", fr:"une horloge", cat:"woorden"},
+  {nl:"een maand", fr:"un mois", cat:"woorden"},
+  {nl:"gisteren", fr:"hier", cat:"woorden"},
+
+  // === WOORDEN: School & Technologie ===
+  {nl:"een tablet", fr:"une tablette", cat:"woorden"},
+  {nl:"een rugzak", fr:"un sac à dos", cat:"woorden"},
+  {nl:"een schrift", fr:"un cahier", cat:"woorden"},
+  {nl:"een boek", fr:"un livre", cat:"woorden"},
+  {nl:"een computer", fr:"un ordinateur", cat:"woorden"},
+  {nl:"een laptop", fr:"un ordinateur portable", cat:"woorden"},
+  {nl:"een gsm", fr:"un portable", cat:"woorden"},
+  {nl:"een smartphone", fr:"un smartphone", cat:"woorden"},
+  {nl:"het Frans", fr:"le français", cat:"woorden"},
+
+  // === WOORDEN: Kleuren ===
+  {nl:"wit", fr:"blanc", cat:"woorden"},
+  {nl:"blauw", fr:"bleu", cat:"woorden"},
+  {nl:"bruin", fr:"brun", cat:"woorden"},
+  {nl:"geel", fr:"jaune", cat:"woorden"},
+  {nl:"zwart", fr:"noir", cat:"woorden"},
+  {nl:"rood", fr:"rouge", cat:"woorden"},
+  {nl:"groen", fr:"vert", cat:"woorden"},
+  {nl:"een kleur", fr:"une couleur", cat:"woorden"},
+
+  // === WOORDEN: Uiterlijk ===
+  {nl:"de haren", fr:"les cheveux", cat:"woorden"},
+  {nl:"ogen", fr:"des yeux", cat:"woorden"},
+  {nl:"een bril", fr:"des lunettes", cat:"woorden"},
+  {nl:"een foto", fr:"une photo", cat:"woorden"},
+
+  // === WOORDEN: Plaatsen & Locatie ===
+  {nl:"een postkantoor", fr:"une poste", cat:"woorden"},
+  {nl:"een tafel", fr:"une table", cat:"woorden"},
+  {nl:"een stoel", fr:"une chaise", cat:"woorden"},
+  {nl:"een muur", fr:"un mur", cat:"woorden"},
+  {nl:"een pakket", fr:"un paquet", cat:"woorden"},
+  {nl:"Duitsland", fr:"l'Allemagne", cat:"woorden"},
+  {nl:"Italië", fr:"l'Italie", cat:"woorden"},
+  {nl:"de vakantie", fr:"les vacances", cat:"woorden"},
+
+  // === WOORDEN: Bijvoeglijke naamwoorden & bijwoorden ===
+  {nl:"warm", fr:"chaud", cat:"woorden"},
+  {nl:"half", fr:"demi(e)", cat:"woorden"},
+  {nl:"vlug", fr:"vite", cat:"woorden"},
+  {nl:"waar / echt", fr:"vrai", cat:"woorden"},
+  {nl:"iedereen", fr:"tout le monde", cat:"woorden"},
+  {nl:"een beetje", fr:"un peu", cat:"woorden"},
+  {nl:"ook", fr:"aussi", cat:"woorden"},
+  {nl:"hoeveel", fr:"combien", cat:"woorden"},
+  {nl:"nog", fr:"encore", cat:"woorden"},
+  {nl:"dicht bij", fr:"près de", cat:"woorden"},
+  {nl:"bijna", fr:"presque", cat:"woorden"},
+  {nl:"welke", fr:"quel / quelle", cat:"woorden"},
+  {nl:"zesde", fr:"sixième", cat:"woorden"},
+  {nl:"op", fr:"sur", cat:"woorden"},
+  {nl:"naast", fr:"à côté de", cat:"woorden"},
+  {nl:"links", fr:"à gauche", cat:"woorden"},
+  {nl:"rechts", fr:"à droite", cat:"woorden"},
+  {nl:"voor (locatie)", fr:"devant", cat:"woorden"},
+  {nl:"achter (locatie)", fr:"derrière", cat:"woorden"},
+  {nl:"in (locatie)", fr:"dans", cat:"woorden"},
+  {nl:"onder", fr:"sous", cat:"woorden"},
+  {nl:"tegen", fr:"contre", cat:"woorden"},
+  {nl:"sinds", fr:"depuis", cat:"woorden"},
+  {nl:"daarna", fr:"puis", cat:"woorden"},
+  {nl:"maar", fr:"mais", cat:"woorden"},
+  {nl:"als", fr:"comme", cat:"woorden"},
+  {nl:"mijn", fr:"mon", cat:"woorden"},
+  {nl:"jouw", fr:"ton / ta", cat:"woorden"},
+  {nl:"vooral", fr:"surtout", cat:"woorden"},
+  {nl:"vriendelijk", fr:"gentil / gentille", cat:"woorden"},
+  {nl:"gelukkig", fr:"heureux / heureuse", cat:"woorden"},
+  {nl:"mooi (klein)", fr:"joli / jolie", cat:"woorden"},
+  {nl:"mooi (groot/knap)", fr:"beau / belle", cat:"woorden"},
+  {nl:"groot", fr:"grand", cat:"woorden"},
+  {nl:"klein", fr:"petit / petite", cat:"woorden"},
+  {nl:"nieuw", fr:"nouveau / nouvelle", cat:"woorden"},
+  {nl:"sympathiek", fr:"sympa(thique)", cat:"woorden"},
+  {nl:"groter", fr:"plus grand", cat:"woorden"},
+  {nl:"tof, zeg!", fr:"chouette!", cat:"woorden"},
+  {nl:"verdorie", fr:"zut", cat:"woorden"},
+  {nl:"hier is... / hier zijn...", fr:"voici", cat:"woorden"},
+  {nl:"helemaal / precies", fr:"tout à fait", cat:"woorden"},
+
+  // === ZINNEN ===
+  {nl:"Hoe heet je?", fr:"Comment tu t'appelles?", cat:"zinnen"},
+  {nl:"Ik heet...", fr:"Je m'appelle...", cat:"zinnen"},
+  {nl:"Hoe oud ben je?", fr:"Tu as quel âge?", cat:"zinnen"},
+  {nl:"Ik ben ... jaar", fr:"J'ai ... ans", cat:"zinnen"},
+  {nl:"Waar woon je?", fr:"Tu habites où?", cat:"zinnen"},
+  {nl:"Ik woon in Rijsel", fr:"J'habite à Lille", cat:"zinnen"},
+  {nl:"Ik woon dichtbij het postkantoor", fr:"J'habite près de la poste", cat:"zinnen"},
+  {nl:"In welk leerjaar zit je?", fr:"Tu es dans quelle classe?", cat:"zinnen"},
+  {nl:"Ik zit in het 6de leerjaar", fr:"Je suis en sixième", cat:"zinnen"},
+  {nl:"Met hoeveel zijn jullie thuis?", fr:"Vous êtes combien à la maison?", cat:"zinnen"},
+  {nl:"We zijn met 5", fr:"Nous sommes cinq", cat:"zinnen"},
+  {nl:"Ze spelen heel graag op de tablet", fr:"Ils adorent jouer sur la tablette", cat:"zinnen"},
+  {nl:"Is het waar? Echt?", fr:"C'est vrai?", cat:"zinnen"},
+  {nl:"Ze zitten aan tafel", fr:"Ils sont à la table", cat:"zinnen"},
+  {nl:"Wat ga je eten?", fr:"Qu'est-ce que tu vas manger?", cat:"zinnen"},
+  {nl:"Ik ga een croissant nemen", fr:"Je vais prendre un croissant", cat:"zinnen"},
+  {nl:"En als drank?", fr:"Et comme boisson?", cat:"zinnen"},
+  {nl:"Wil je mij de boter doorgeven, alsjeblieft?", fr:"Tu me passes le beurre, s'il vous plaît?", cat:"zinnen"},
+  {nl:"Alstublieft", fr:"S'il vous plaît", cat:"zinnen"},
+  {nl:"Hoe laat is het?", fr:"Quelle heure est-il?", cat:"zinnen"},
+  {nl:"Het is ... uur", fr:"Il est ... heure(s)", cat:"zinnen"},
+  {nl:"Het is tijd", fr:"Il est temps", cat:"zinnen"},
+  {nl:"Het is kwart over zeven", fr:"Il est sept heures et quart", cat:"zinnen"},
+  {nl:"Het is kwart voor zeven", fr:"Il est sept heures moins le quart", cat:"zinnen"},
+  {nl:"Het is half acht", fr:"Il est sept heures et demie", cat:"zinnen"},
+  {nl:"Is iedereen klaar?", fr:"Tout le monde est prêt?", cat:"zinnen"},
+  {nl:"We zijn te laat", fr:"Nous sommes en retard", cat:"zinnen"},
+  {nl:"We gaan vertrekken", fr:"Nous allons partir", cat:"zinnen"},
+  {nl:"Er is / er zijn / er staat / er ligt", fr:"Il y a", cat:"zinnen"},
+  {nl:"Er staan stoelen", fr:"Il y a des chaises", cat:"zinnen"},
+  {nl:"Er liggen boeken op tafel", fr:"Il y a des livres sur la table", cat:"zinnen"},
+  {nl:"Nietwaar?", fr:"N'est-ce pas?", cat:"zinnen"},
+  {nl:"Ik ben gelukkig", fr:"Je suis heureux/heureuse", cat:"zinnen"},
+  {nl:"We zijn met 16", fr:"Nous sommes seize", cat:"zinnen"},
+  {nl:"Sinds gisteren", fr:"Depuis hier", cat:"zinnen"},
+  {nl:"Wie zit er voor jou?", fr:"Qui est devant toi?", cat:"zinnen"},
+  {nl:"Wie zit er achter je?", fr:"Qui est derrière toi?", cat:"zinnen"},
+  {nl:"Links zit mijn vriend", fr:"À gauche, il y a mon copain", cat:"zinnen"},
+  {nl:"Wat een geluk!", fr:"Quelle chance!", cat:"zinnen"},
+  {nl:"Hij is goed in Frans", fr:"Il est bon en français", cat:"zinnen"},
+  {nl:"Ze is goed in Frans", fr:"Elle est bonne en français", cat:"zinnen"},
+  {nl:"Ik begrijp het", fr:"Je comprends", cat:"zinnen"},
+  {nl:"Hoe ziet hij eruit?", fr:"Il est comment?", cat:"zinnen"},
+  {nl:"Hij heeft blond haar", fr:"Il a les cheveux blonds", cat:"zinnen"},
+  {nl:"Zij heeft zwarte ogen", fr:"Elle a des yeux noirs", cat:"zinnen"},
+  {nl:"Zij draagt een bril", fr:"Elle porte des lunettes", cat:"zinnen"},
+  {nl:"Waar is hij vandaan?", fr:"Il est d'où?", cat:"zinnen"},
+  {nl:"Hij woont in Italië", fr:"Il habite en Italie", cat:"zinnen"},
+  {nl:"Hij is sympathiek", fr:"Il est sympa", cat:"zinnen"},
+  {nl:"Het zijn er veel", fr:"Il y en a beaucoup", cat:"zinnen"},
+
+  // === WERKWOORDEN (vervoegingen) ===
+  {nl:"ik ben", fr:"je suis", cat:"werkwoorden"},
+  {nl:"jij bent", fr:"tu es", cat:"werkwoorden"},
+  {nl:"hij/zij is", fr:"il/elle est", cat:"werkwoorden"},
+  {nl:"wij zijn", fr:"nous sommes", cat:"werkwoorden"},
+  {nl:"jullie zijn", fr:"vous êtes", cat:"werkwoorden"},
+  {nl:"zij zijn", fr:"ils/elles sont", cat:"werkwoorden"},
+  {nl:"ik heb", fr:"j'ai", cat:"werkwoorden"},
+  {nl:"jij hebt", fr:"tu as", cat:"werkwoorden"},
+  {nl:"hij/zij heeft", fr:"il/elle a", cat:"werkwoorden"},
+  {nl:"wij hebben", fr:"nous avons", cat:"werkwoorden"},
+  {nl:"jullie hebben", fr:"vous avez", cat:"werkwoorden"},
+  {nl:"zij hebben", fr:"ils/elles ont", cat:"werkwoorden"},
+  {nl:"ik ga", fr:"je vais", cat:"werkwoorden"},
+  {nl:"jij gaat", fr:"tu vas", cat:"werkwoorden"},
+  {nl:"hij/zij gaat", fr:"il/elle va", cat:"werkwoorden"},
+  {nl:"wij gaan", fr:"nous allons", cat:"werkwoorden"},
+  {nl:"jullie gaan", fr:"vous allez", cat:"werkwoorden"},
+  {nl:"zij gaan", fr:"ils/elles vont", cat:"werkwoorden"},
+  {nl:"ik hou van", fr:"j'aime", cat:"werkwoorden"},
+  {nl:"jij houdt van", fr:"tu aimes", cat:"werkwoorden"},
+  {nl:"hij/zij houdt van", fr:"il/elle aime", cat:"werkwoorden"},
+  {nl:"wij houden van", fr:"nous aimons", cat:"werkwoorden"},
+  {nl:"jullie houden van", fr:"vous aimez", cat:"werkwoorden"},
+  {nl:"zij houden van", fr:"ils/elles aiment", cat:"werkwoorden"},
+  {nl:"ik draag", fr:"je porte", cat:"werkwoorden"},
+  {nl:"jij draagt", fr:"tu portes", cat:"werkwoorden"},
+  {nl:"hij/zij draagt", fr:"il/elle porte", cat:"werkwoorden"},
+  {nl:"wij dragen", fr:"nous portons", cat:"werkwoorden"},
+  {nl:"jullie dragen", fr:"vous portez", cat:"werkwoorden"},
+  {nl:"zij dragen", fr:"ils/elles portent", cat:"werkwoorden"},
+  {nl:"ik heet", fr:"je m'appelle", cat:"werkwoorden"},
+  {nl:"jij heet", fr:"tu t'appelles", cat:"werkwoorden"},
+  {nl:"hij/zij heet", fr:"il/elle s'appelle", cat:"werkwoorden"},
+  {nl:"wij heten", fr:"nous nous appelons", cat:"werkwoorden"},
+  {nl:"jullie heten", fr:"vous vous appelez", cat:"werkwoorden"},
+  {nl:"zij heten", fr:"ils/elles s'appellent", cat:"werkwoorden"},
+  {nl:"ik eet", fr:"je mange", cat:"werkwoorden"},
+  {nl:"jij eet", fr:"tu manges", cat:"werkwoorden"},
+  {nl:"hij/zij eet", fr:"il/elle mange", cat:"werkwoorden"},
+  {nl:"wij eten", fr:"nous mangeons", cat:"werkwoorden"},
+  {nl:"jullie eten", fr:"vous mangez", cat:"werkwoorden"},
+  {nl:"zij eten", fr:"ils/elles mangent", cat:"werkwoorden"},
+  {nl:"ik geef door", fr:"je passe", cat:"werkwoorden"},
+  {nl:"jij geeft door", fr:"tu passes", cat:"werkwoorden"},
+  {nl:"hij/zij geeft door", fr:"il/elle passe", cat:"werkwoorden"},
+  {nl:"wij geven door", fr:"nous passons", cat:"werkwoorden"},
+  {nl:"jullie geven door", fr:"vous passez", cat:"werkwoorden"},
+  {nl:"zij geven door", fr:"ils/elles passent", cat:"werkwoorden"},
+  {nl:"ik woon", fr:"j'habite", cat:"werkwoorden"},
+  {nl:"jij woont", fr:"tu habites", cat:"werkwoorden"},
+  {nl:"hij/zij woont", fr:"il/elle habite", cat:"werkwoorden"},
+  {nl:"wij wonen", fr:"nous habitons", cat:"werkwoorden"},
+  {nl:"jullie wonen", fr:"vous habitez", cat:"werkwoorden"},
+  {nl:"zij wonen", fr:"ils/elles habitent", cat:"werkwoorden"},
+  {nl:"ik speel", fr:"je joue", cat:"werkwoorden"},
+  {nl:"jij speelt", fr:"tu joues", cat:"werkwoorden"},
+  {nl:"hij/zij speelt", fr:"il/elle joue", cat:"werkwoorden"},
+  {nl:"wij spelen", fr:"nous jouons", cat:"werkwoorden"},
+  {nl:"jullie spelen", fr:"vous jouez", cat:"werkwoorden"},
+  {nl:"zij spelen", fr:"ils/elles jouent", cat:"werkwoorden"},
+  {nl:"ik kijk", fr:"je regarde", cat:"werkwoorden"},
+  {nl:"jij kijkt", fr:"tu regardes", cat:"werkwoorden"},
+  {nl:"hij/zij kijkt", fr:"il/elle regarde", cat:"werkwoorden"},
+  {nl:"wij kijken", fr:"nous regardons", cat:"werkwoorden"},
+  {nl:"jullie kijken", fr:"vous regardez", cat:"werkwoorden"},
+  {nl:"zij kijken", fr:"ils/elles regardent", cat:"werkwoorden"},
+  {nl:"zielsveel houden van (infinitief)", fr:"adorer", cat:"werkwoorden"},
+  {nl:"heten (infinitief)", fr:"s'appeler", cat:"werkwoorden"},
+  {nl:"wonen (infinitief)", fr:"habiter", cat:"werkwoorden"},
+  {nl:"spelen (infinitief)", fr:"jouer", cat:"werkwoorden"},
+  {nl:"drinken (infinitief)", fr:"boire", cat:"werkwoorden"},
+  {nl:"eten (infinitief)", fr:"manger", cat:"werkwoorden"},
+  {nl:"vertrekken (infinitief)", fr:"partir", cat:"werkwoorden"},
+  {nl:"doorgeven (infinitief)", fr:"passer", cat:"werkwoorden"},
+  {nl:"nemen (infinitief)", fr:"prendre", cat:"werkwoorden"},
+  {nl:"dragen (infinitief)", fr:"porter", cat:"werkwoorden"},
+  {nl:"leren (infinitief)", fr:"apprendre", cat:"werkwoorden"},
+  {nl:"begrijpen (infinitief)", fr:"comprendre", cat:"werkwoorden"},
+  {nl:"tikken (infinitief)", fr:"faire tic tac", cat:"werkwoorden"},
+  {nl:"lopen / rijden (infinitief)", fr:"rouler", cat:"werkwoorden"},
+];
+
+let mode = 'nl-fr';
+let filter = 'all';
+let deck = [];
+let current = 0;
+let flipped = false;
+let goodCount = 0;
+let badCount = 0;
+let wrongCards = [];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && m==='nl-fr') || (i===1 && m==='fr-nl'));
+  });
+  resetDeck();
+}
+
+function setFilter(f) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(f) || (f==='all' && b.textContent==='Alles'));
+  });
+  resetDeck();
+}
+
+function buildDeck() {
+  let cards = filter === 'all' ? allCards : allCards.filter(c => c.cat === filter);
+  deck = shuffle([...cards]);
+  current = 0;
+  goodCount = 0;
+  badCount = 0;
+  wrongCards = [];
+}
+
+function resetDeck() {
+  buildDeck();
+  document.getElementById('finishedScreen').classList.add('hidden');
+  document.getElementById('cardScene').classList.remove('hidden');
+  document.querySelectorAll('.btn-row').forEach(r => r.classList.remove('hidden'));
+  document.getElementById('judgeBtns').classList.add('hidden');
+  updateUI();
+}
+
+function repeatWrong() {
+  deck = shuffle([...wrongCards]);
+  current = 0;
+  goodCount = 0;
+  badCount = 0;
+  wrongCards = [];
+  document.getElementById('finishedScreen').classList.add('hidden');
+  document.getElementById('cardScene').classList.remove('hidden');
+  document.querySelectorAll('.btn-row').forEach(r => r.classList.remove('hidden'));
+  document.getElementById('judgeBtns').classList.add('hidden');
+  updateUI();
+}
+
+function updateUI() {
+  if (deck.length === 0) return;
+  const card = deck[current];
+  const front = mode === 'nl-fr' ? card.nl : card.fr;
+  const back  = mode === 'nl-fr' ? card.fr : card.nl;
+  const frontLbl = mode === 'nl-fr' ? '🇧🇪 Nederlands' : '🇫🇷 Frans';
+  const backLbl  = mode === 'nl-fr' ? '🇫🇷 Frans' : '🇧🇪 Nederlands';
+
+  document.getElementById('frontText').textContent = front;
+  document.getElementById('backText').textContent = back;
+  document.getElementById('frontLabel').textContent = frontLbl;
+  document.getElementById('backLabel').textContent = backLbl;
+  document.getElementById('counter').textContent = `Kaart ${current + 1} van ${deck.length}`;
+  document.getElementById('scoreGood').textContent = goodCount;
+  document.getElementById('scoreBad').textContent = badCount;
+  document.getElementById('scoreLeft').textContent = deck.length - current;
+
+  const pct = (current / deck.length) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  // reset flip
+  flipped = false;
+  document.getElementById('card').classList.remove('flipped');
+  document.getElementById('flipBtns').classList.remove('hidden');
+  document.getElementById('judgeBtns').classList.add('hidden');
+}
+
+function flipCard() {
+  if (!flipped) {
+    flipped = true;
+    document.getElementById('card').classList.add('flipped');
+    document.getElementById('flipBtns').classList.add('hidden');
+    document.getElementById('judgeBtns').classList.remove('hidden');
+  }
+}
+
+function judge(correct) {
+  if (correct) {
+    goodCount++;
+  } else {
+    badCount++;
+    wrongCards.push(deck[current]);
+  }
+  nextCard();
+}
+
+function skipCard() {
+  deck.push(deck[current]);
+  deck.splice(current, 1);
+  if (current >= deck.length) current = 0;
+  updateUI();
+}
+
+function nextCard() {
+  current++;
+  if (current >= deck.length) {
+    showFinished();
+  } else {
+    updateUI();
+  }
+}
+
+function showFinished() {
+  document.getElementById('cardScene').classList.add('hidden');
+  document.querySelectorAll('.btn-row').forEach(r => r.classList.add('hidden'));
+  const total = goodCount + badCount;
+  const pct = total > 0 ? Math.round((goodCount / total) * 100) : 0;
+  let emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '😊' : '💪';
+  document.getElementById('finishEmoji').textContent = emoji;
+  document.getElementById('finishTitle').textContent = pct >= 90 ? 'Uitstekend!' : pct >= 70 ? 'Goed gedaan!' : pct >= 50 ? 'Niet slecht!' : 'Blijven oefenen!';
+  document.getElementById('finishMsg').textContent = `${goodCount} van de ${total} goed (${pct}%)`;
+  document.getElementById('repeatWrongBtn').style.display = wrongCards.length > 0 ? 'inline-block' : 'none';
+  document.getElementById('finishedScreen').classList.remove('hidden');
+  document.getElementById('progressBar').style.width = '100%';
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!flipped) flipCard();
+  } else if (e.key === 'ArrowRight' && flipped) {
+    judge(true);
+  } else if (e.key === 'ArrowLeft' && flipped) {
+    judge(false);
+  } else if (e.key === 'ArrowRight' && !flipped) {
+    skipCard();
+  }
+});
+
+// Init
+resetDeck();
+</script>
+</body>
+</html>
